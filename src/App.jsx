@@ -110,6 +110,16 @@ const GlobalStyle = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Quicksand:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap');
 
+    * , *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
     .mb-root {
       --pink-50:  #fff3f8;
       --pink-100: #ffe3ef;
@@ -373,7 +383,7 @@ const Scene = ({ children, center = true }) => (
       flexDirection: "column",
       alignItems: "center",
       justifyContent: center ? "center" : "flex-start",
-      padding: "80px 20px 120px",
+      padding: "80px clamp(14px, 5vw, 24px) 120px",
       position: "relative",
       zIndex: 3,
     }}
@@ -525,7 +535,7 @@ const LetterScene = ({ onNext }) => {
   const done = shown >= LETTER_LINES.length;
   return (
     <Scene>
-      <div className="mb-glass" style={{ maxWidth: 640, width: "100%", borderRadius: 26, padding: "44px 34px" }}>
+      <div className="mb-glass" style={{ maxWidth: 640, width: "100%", borderRadius: 26, padding: "clamp(28px,6vw,44px) clamp(18px,5vw,34px)" }}>
         <p className="mb-script" style={{ fontSize: 22, color: "var(--lav-500)", marginBottom: 18 }}>a letter, of sorts —</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {LETTER_LINES.slice(0, shown).map((line, i) => (
@@ -706,7 +716,7 @@ const ReasonsScene = ({ onNext }) => (
       <p className="mb-script" style={{ fontSize: 24, color: "var(--lav-500)" }}>20 for 20</p>
       <h2 className="mb-display" style={{ fontSize: "clamp(1.8rem,5vw,2.6rem)" }}>reasons you're kind of amazing</h2>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px,1fr))", gap: 16, maxWidth: 900, width: "100%" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px,1fr))", gap: 16, maxWidth: 900, width: "100%" }}>
       {REASONS.map((r, i) => (
         <motion.div
           key={i}
