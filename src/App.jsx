@@ -8,6 +8,36 @@ import {
    FOR MANSI — a small universe built by her best friend
    ============================================================ */
 
+/*
+  PHOTOS: drop your real images into  src/assets/photos/
+  Any filename works, e.g. 01-spark-class.jpg, 02-trip.png, etc.
+  They're picked up automatically — no need to touch this code.
+  Optional: name files like "our-first-trip.jpg" and the caption
+  will read "our first trip" (dashes/underscores become spaces).
+*/
+const photoModules = import.meta.glob("./assets/photos/*.{png,jpg,jpeg,webp,gif,JPG,PNG}", {
+  eager: true,
+  import: "default",
+});
+const USER_PHOTOS = Object.entries(photoModules)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([path, src]) => {
+    const name = path.split("/").pop().replace(/\.[^/.]+$/, "").replace(/^\d+[-_.\s]*/, "").replace(/[-_]/g, " ");
+    return { src, caption: name || "us" };
+  });
+
+/*
+  MUSIC: drop one song file into  src/assets/music/
+  Any filename works, e.g. birthday-song.mp3 — it's picked up automatically.
+  If no file is found, the site falls back to a small original placeholder
+  chime instead (so the button is never just silently broken).
+*/
+const musicModules = import.meta.glob("./assets/music/*.{mp3,wav,ogg,m4a}", {
+  eager: true,
+  import: "default",
+});
+const USER_SONG_SRC = Object.values(musicModules)[0] || "";
+
 const REASONS = [
   "Because you make every conversation feel safe — I can say literally anything without being judged.",
   "Because your laugh is loud enough to fix a bad day.",
@@ -726,39 +756,47 @@ const TimelineScene = ({ onNext }) => (
 
 /* ---------------- Scene 8: Photo Gallery ---------------- */
 
-const GalleryScene = ({ onNext }) => (
-  <Scene center={false}>
-    <div style={{ textAlign: "center", marginBottom: 26 }}>
-      <p className="mb-script" style={{ fontSize: 24, color: "var(--lav-500)" }}>a wall of us</p>
-      <h2 className="mb-display" style={{ fontSize: "clamp(1.8rem,5vw,2.6rem)" }}>(placeholders for now — swap in our real photos!)</h2>
-    </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: 16, maxWidth: 760, width: "100%" }}>
-      {PHOTO_SEEDS.map((seed, i) => (
-        <motion.div
-          key={seed}
-          initial={{ opacity: 0, y: 20, rotate: i % 2 === 0 ? -4 : 4 }}
-          whileInView={{ opacity: 1, y: 0, rotate: i % 2 === 0 ? -3 : 3 }}
-          viewport={{ once: true }}
-          whileHover={{ rotate: 0, scale: 1.05 }}
-          transition={{ duration: 0.5, delay: i * 0.08 }}
-          className="mb-glass"
-          style={{ borderRadius: 12, padding: 10, paddingBottom: 22 }}
-        >
-          <div style={{ borderRadius: 6, overflow: "hidden", aspectRatio: "1/1", background: "var(--lav-100)" }}>
-            <img
-              src={`https://picsum.photos/seed/mansi${seed}/300/300`}
-              alt="memory placeholder"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              loading="lazy"
-            />
-          </div>
-          <p className="mb-script" style={{ textAlign: "center", fontSize: 15, marginTop: 6, color: "var(--ink-soft)" }}>us, someday soon</p>
-        </motion.div>
-      ))}
-    </div>
-    <Continue onClick={onNext} />
-  </Scene>
-);
+const GalleryScene = ({ onNext }) => {
+  const photos = USER_PHOTOS.length > 0
+    ? USER_PHOTOS
+    : PHOTO_SEEDS.map((seed) => ({ src: `https://picsum.photos/seed/mansi${seed}/300/300`, caption: "us, someday soon" }));
+
+  return (
+    <Scene center={false}>
+      <div style={{ textAlign: "center", marginBottom: 26 }}>
+        <p className="mb-script" style={{ fontSize: 24, color: "var(--lav-500)" }}>a wall of us</p>
+        <h2 className="mb-display" style={{ fontSize: "clamp(1.8rem,5vw,2.6rem)" }}>
+          {USER_PHOTOS.length > 0 ? "our favorite moments" : "(placeholders for now — add photos to src/assets/photos)"}
+        </h2>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: 16, maxWidth: 760, width: "100%" }}>
+        {photos.map((p, i) => (
+          <motion.div
+            key={p.src}
+            initial={{ opacity: 0, y: 20, rotate: i % 2 === 0 ? -4 : 4 }}
+            whileInView={{ opacity: 1, y: 0, rotate: i % 2 === 0 ? -3 : 3 }}
+            viewport={{ once: true }}
+            whileHover={{ rotate: 0, scale: 1.05 }}
+            transition={{ duration: 0.5, delay: i * 0.08 }}
+            className="mb-glass"
+            style={{ borderRadius: 12, padding: 10, paddingBottom: 22 }}
+          >
+            <div style={{ borderRadius: 6, overflow: "hidden", aspectRatio: "1/1", background: "var(--lav-100)" }}>
+              <img
+                src={p.src}
+                alt={p.caption}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                loading="lazy"
+              />
+            </div>
+            <p className="mb-script" style={{ textAlign: "center", fontSize: 15, marginTop: 6, color: "var(--ink-soft)" }}>{p.caption}</p>
+          </motion.div>
+        ))}
+      </div>
+      <Continue onClick={onNext} />
+    </Scene>
+  );
+};
 
 /* ---------------- Scene 9: Finale ---------------- */
 
@@ -853,10 +891,10 @@ export default function App() {
   const audioCtxRef = useRef(null);
   const melodyTimerRef = useRef(null);
 
-  // Set this to a real file (e.g. "/your-song.mp3") once you have one.
-  // Until then, the music button plays a small original synthesized tune
-  // instead of a licensed track, so nothing gets copied illegally.
-  const REAL_SONG_SRC = "";
+  // Auto-detected from src/assets/music (see USER_SONG_SRC above).
+  // Falls back to a small original synthesized tune if no file is found,
+  // so the music button is never silently broken.
+  const REAL_SONG_SRC = USER_SONG_SRC;
 
   const goNext = useCallback(() => setIndex((i) => Math.min(i + 1, SCENES.length - 1)), []);
   const goBack = useCallback(() => setIndex((i) => Math.max(i - 1, 0)), []);
@@ -942,9 +980,8 @@ export default function App() {
     <div className="mb-root mb-grain">
       <GlobalStyle />
       {/*
-        Add your own birthday song by setting REAL_SONG_SRC above to a file path,
-        e.g. REAL_SONG_SRC = "/your-song.mp3". It will automatically take over
-        from the synthesized placeholder melody.
+        Music auto-loads from src/assets/music/ (any single audio file placed there).
+        No code changes needed — just add the file and rebuild/redeploy.
       */}
       {REAL_SONG_SRC && <audio ref={audioRef} src={REAL_SONG_SRC} loop />}
 
